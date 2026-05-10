@@ -16,7 +16,10 @@ export const metadata: Metadata = {
     "Idli Vada Hubli",
     "Tamil food Hubli",
   ],
-  manifest: "/manifest.json",
+  manifest: "/site.webmanifest",
+  appleWebApp: {
+    title: "Annachi",
+  },
   openGraph: {
     title: "Annachi Tiffin Centre – The Real Taste of the Tamilian",
     description:
@@ -52,6 +55,13 @@ export default function RootLayout({
           rel="stylesheet"
           href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&display=swap"
         />
+        {/* Favicon */}
+        <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <link rel="shortcut icon" href="/favicon.ico" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+        <meta name="apple-mobile-web-app-title" content="Annachi" />
+        <link rel="manifest" href="/site.webmanifest" />
       </head>
       <body>
         <SheetDataProvider>
