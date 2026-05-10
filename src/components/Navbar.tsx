@@ -580,6 +580,8 @@ function AnnachiSecretTrigger() {
         gap: "6px",
         userSelect: "none",
         WebkitUserSelect: "none",
+        // @ts-expect-error — non-standard but required for iOS Safari
+        WebkitTouchCallout: "none",
         touchAction: "none",
         position: "relative",
       }}
@@ -587,9 +589,9 @@ function AnnachiSecretTrigger() {
       onPointerUp={cancelPress}
       onPointerLeave={cancelPress}
       onPointerCancel={cancelPress}
+      onContextMenu={(e) => e.preventDefault()}
     >
       {/* Secret long-press trigger */}
-
 
       <h2
         className="font-display"
@@ -602,6 +604,11 @@ function AnnachiSecretTrigger() {
           lineHeight: 1,
           margin: 0,
           cursor: "default",
+          userSelect: "none",
+          WebkitUserSelect: "none",
+          // @ts-expect-error — non-standard but required for iOS Safari
+          WebkitTouchCallout: "none",
+          pointerEvents: "none",
         }}
       >
         Annachi
@@ -615,6 +622,11 @@ function AnnachiSecretTrigger() {
           textTransform: "uppercase",
           color: "#A5D6A7",
           marginTop: "2px",
+          userSelect: "none",
+          WebkitUserSelect: "none",
+          // @ts-expect-error — non-standard but required for iOS Safari
+          WebkitTouchCallout: "none",
+          pointerEvents: "none",
         }}
       >
         TIFFIN CENTRE
