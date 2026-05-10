@@ -21,6 +21,46 @@ function buildUpiLink(amount: number): string {
   return `upi://pay?pa=${BRAND.paytmUpiId}&pn=${name}&am=${amount}&cu=INR&tn=${note}`;
 }
 
+function buildOrderMessage(
+  customerName: string,
+  items: BillEntry[],
+  total: number,
+  upiLink: string
+): string {
+  const now = new Date();
+  const date = `${now.getDate()}/${now.getMonth() + 1}/${now.getFullYear()}`;
+  const time = new Date().toLocaleTimeString("en-IN", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+
+  const itemLines = items
+    .map(
+      (it) =>
+        `  - ${it.name.padEnd(20)} x${it.qty}  Rs. ${(it.qty * it.price).toFixed(0)}`
+    )
+    .join("\n");
+
+  return (
+    `ORDER REQUEST —\n` +
+    `Annachi Tiffin Centre\n` +
+    `--------------------------------------\n` +
+    `Customer  : ${customerName}\n` +
+    `Date      : ${date}\n` +
+    `Time      : ${time}\n` +
+    `--------------------------------------\n` +
+    `ITEMS ORDERED\n` +
+    `${itemLines}\n` +
+    `--------------------------------------\n` +
+    `TOTAL AMOUNT : Rs. ${total}\n` +
+    `--------------------------------------\n` +
+    `Upi link: ${upiLink}\n` +
+    `--------------------------------------\n` +
+    `Kindly confirm this order once payment is done.\n` +
+    `Thank you for ordering from Annachi Tiffin Centre.`
+  );
+}
+
 /* ─────────────────────────────────────────────────────────────
    MAIN COMPONENT
 ───────────────────────────────────────────────────────────── */
@@ -66,7 +106,9 @@ export default function OwnerBillingPanel({
 
 
   const handleOpenUpi = () => {
-    window.open(upiLink, "_blank", "noopener");
+    const message = buildOrderMessage("Walk-in Customer", billEntries, total, upiLink);
+    const waUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+    window.open(waUrl, "_blank", "noopener");
   };
 
   return (
