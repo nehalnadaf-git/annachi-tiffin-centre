@@ -555,20 +555,16 @@ function CartButton({ totalItems, onClick }: { totalItems: number; onClick: () =
 
 /* ─── Secret Annachi Long-Press Trigger ─── */
 function AnnachiSecretTrigger() {
-  const [pressing, setPressing] = useState(false);
   const pressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const startPress = () => {
-    setPressing(true);
     pressTimer.current = setTimeout(() => {
-      setPressing(false);
       dispatchOwnerBilling();
     }, 3000);
   };
 
   const cancelPress = () => {
     if (pressTimer.current) clearTimeout(pressTimer.current);
-    setPressing(false);
   };
 
   return (
@@ -600,12 +596,11 @@ function AnnachiSecretTrigger() {
         style={{
           fontWeight: 600,
           fontSize: "42px",
-          color: pressing ? "rgba(165,214,167,0.85)" : "#fff",
+          color: "#fff",
           letterSpacing: "-0.02em",
           textTransform: "none",
           lineHeight: 1,
           margin: 0,
-          transition: "color 200ms",
           cursor: "default",
         }}
       >
