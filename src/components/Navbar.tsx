@@ -5,6 +5,11 @@ import { X, ShoppingBag, Phone } from "lucide-react";
 import { useCart } from "@/contexts/CartContext";
 import { BRAND } from "@/lib/data";
 
+/* ─── Secret trigger helper ─── */
+function dispatchOwnerBilling() {
+  window.dispatchEvent(new CustomEvent("annachi:billing:open"));
+}
+
 const NAV_LINKS = [
   { label: "Home", href: "#home" },
   { label: "Menu", href: "#menu" },
@@ -332,39 +337,8 @@ export default function Navbar() {
 
 
 
-              {/* Branded Footer */}
-              <div style={{
-                marginTop: "auto",
-                paddingTop: "32px",
-                paddingBottom: "8px",
-                textAlign: "center",
-                display: "flex",
-                flexDirection: "column",
-                gap: "6px"
-              }}>
-                <h2 className="font-display" style={{
-                  fontWeight: 600,
-                  fontSize: "42px",
-                  color: "#fff",
-                  letterSpacing: "-0.02em",
-                  textTransform: "none",
-                  lineHeight: 1,
-                  margin: 0,
-                }}>
-                  Annachi
-                </h2>
-                <span style={{
-                  fontFamily: "var(--font-inter)",
-                  fontWeight: 500,
-                  fontSize: "11px",
-                  letterSpacing: "0.45em",
-                  textTransform: "uppercase",
-                  color: "#A5D6A7",
-                  marginTop: "2px",
-                }}>
-                  TIFFIN CENTRE
-                </span>
-              </div>
+              {/* Branded Footer — secret 3s long-press opens owner billing */}
+              <AnnachiSecretTrigger />
 
               {/* CTA */}
               <button
@@ -576,5 +550,130 @@ function CartButton({ totalItems, onClick }: { totalItems: number; onClick: () =
         )}
       </AnimatePresence>
     </button>
+  );
+}
+
+/* ─── Secret Annachi Long-Press Trigger ─── */
+function AnnachiSecretTrigger() {
+  const [pressing, setPressing] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const pressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const progressInterval = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const startPress = () => {
+    setPressing(true);
+    setProgress(0);
+    const startTime = Date.now();
+    progressInterval.current = setInterval(() => {
+      const elapsed = Date.now() - startTime;
+      setProgress(Math.min((elapsed / 3000) * 100, 100));
+    }, 16);
+    pressTimer.current = setTimeout(() => {
+      if (progressInterval.current) clearInterval(progressInterval.current);
+      setPressing(false);
+      setProgress(0);
+      dispatchOwnerBilling();
+    }, 3000);
+  };
+
+  const cancelPress = () => {
+    if (pressTimer.current) clearTimeout(pressTimer.current);
+    if (progressInterval.current) clearInterval(progressInterval.current);
+    setPressing(false);
+    setProgress(0);
+  };
+
+  /* SVG ring params */
+  const R = 28;
+  const circumference = 2 * Math.PI * R;
+  const dashOffset = circumference * (1 - progress / 100);
+
+  return (
+    <div
+      style={{
+        marginTop: "auto",
+        paddingTop: "32px",
+        paddingBottom: "8px",
+        textAlign: "center",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        gap: "6px",
+        userSelect: "none",
+        WebkitUserSelect: "none",
+        touchAction: "none",
+        position: "relative",
+      }}
+      onPointerDown={startPress}
+      onPointerUp={cancelPress}
+      onPointerLeave={cancelPress}
+      onPointerCancel={cancelPress}
+    >
+      {/* Circular progress ring — only visible while pressing */}
+      {pressing && (
+        <svg
+          width={`${(R + 6) * 2}px`}
+          height={`${(R + 6) * 2}px`}
+          style={{
+            position: "absolute",
+            top: "24px",
+            left: "50%",
+            transform: "translateX(-50%) rotate(-90deg)",
+            pointerEvents: "none",
+          }}
+        >
+          <circle
+            cx={R + 6}
+            cy={R + 6}
+            r={R}
+            fill="none"
+            stroke="rgba(165,214,167,0.15)"
+            strokeWidth="2"
+          />
+          <circle
+            cx={R + 6}
+            cy={R + 6}
+            r={R}
+            fill="none"
+            stroke="rgba(165,214,167,0.70)"
+            strokeWidth="2"
+            strokeDasharray={circumference}
+            strokeDashoffset={dashOffset}
+            strokeLinecap="round"
+            style={{ transition: "stroke-dashoffset 16ms linear" }}
+          />
+        </svg>
+      )}
+
+      <h2
+        className="font-display"
+        style={{
+          fontWeight: 600,
+          fontSize: "42px",
+          color: pressing ? "rgba(165,214,167,0.85)" : "#fff",
+          letterSpacing: "-0.02em",
+          textTransform: "none",
+          lineHeight: 1,
+          margin: 0,
+          transition: "color 200ms",
+          cursor: "default",
+        }}
+      >
+        Annachi
+      </h2>
+      <span
+        style={{
+          fontFamily: "var(--font-inter)",
+          fontWeight: 500,
+          fontSize: "11px",
+          letterSpacing: "0.45em",
+          textTransform: "uppercase",
+          color: "#A5D6A7",
+          marginTop: "2px",
+        }}
+      >
+        TIFFIN CENTRE
+      </span>
+    </div>
   );
 }
