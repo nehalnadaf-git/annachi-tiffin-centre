@@ -2,7 +2,7 @@
 import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { QRCodeSVG } from "qrcode.react";
-import { X, Plus, Minus, ArrowLeft, Trash2, Share2, QrCode, RefreshCw, Link } from "lucide-react";
+import { X, Plus, Minus, ArrowLeft, Trash2, QrCode, RefreshCw, Link } from "lucide-react";
 import { useSheetData } from "@/contexts/SheetDataContext";
 import { BRAND } from "@/lib/data";
 
@@ -64,15 +64,6 @@ export default function OwnerBillingPanel({
     setTimeout(() => { setQuantities({}); setView("builder"); }, 350);
   };
 
-  const handleShareLink = async () => {
-    if (navigator.share) {
-      try {
-        await navigator.share({ title: "Pay Annachi Tiffin Centre", url: upiLink });
-      } catch { /* cancelled */ }
-    } else {
-      window.open(upiLink, "_blank", "noopener");
-    }
-  };
 
   const handleOpenUpi = () => {
     window.open(upiLink, "_blank", "noopener");
@@ -132,7 +123,6 @@ export default function OwnerBillingPanel({
                   clearAll={clearAll}
                   onClose={handleClose}
                   onQR={() => setView("qr")}
-                  onShareLink={handleShareLink}
                   onOpenUpi={handleOpenUpi}
                 />
               )}
@@ -159,7 +149,7 @@ export default function OwnerBillingPanel({
    VIEW 1 — OWNER PANEL (BILL BUILDER)
 ───────────────────────────────────────────────────────────── */
 function BuilderView({
-  liveMenuItems, quantities, total, hasBill, setQty, clearAll, onClose, onQR, onShareLink, onOpenUpi,
+  liveMenuItems, quantities, total, hasBill, setQty, clearAll, onClose, onQR, onOpenUpi,
 }: {
   liveMenuItems: ReturnType<typeof useSheetData>["liveMenuItems"];
   quantities: Record<string, number>;
@@ -169,7 +159,6 @@ function BuilderView({
   clearAll: () => void;
   onClose: () => void;
   onQR: () => void;
-  onShareLink: () => void;
   onOpenUpi: () => void;
 }) {
   return (
@@ -309,14 +298,6 @@ function BuilderView({
                 onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
               >
                 <QrCode size={16} /> Generate QR Code
-              </button>
-              <button
-                onClick={onShareLink}
-                style={secondaryBtn}
-                onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(165,214,167,0.10)")}
-                onMouseLeave={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.05)")}
-              >
-                <Share2 size={16} /> Share Link
               </button>
               <button
                 onClick={onOpenUpi}
