@@ -2,14 +2,14 @@
 import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { QRCodeSVG } from "qrcode.react";
-import { X, Plus, Minus, ArrowRight, ChevronLeft, Trash2, Share2, QrCode, RefreshCw } from "lucide-react";
+import { X, Plus, Minus, ArrowLeft, Trash2, Share2, QrCode, RefreshCw, Link } from "lucide-react";
 import { useSheetData } from "@/contexts/SheetDataContext";
 import { BRAND } from "@/lib/data";
 
 /* ─────────────────────────────────────────────────────────────
    TYPES
 ───────────────────────────────────────────────────────────── */
-type View = "builder" | "summary" | "qr";
+type View = "builder" | "qr";
 interface BillEntry { id: string; name: string; price: number; qty: number; }
 
 /* ─────────────────────────────────────────────────────────────
@@ -31,12 +31,12 @@ export default function OwnerBillingPanel({
   open: boolean;
   onClose: () => void;
 }) {
-  const { liveMenuItems: allMenuItems } = useSheetData();
+  const { liveMenuItems } = useSheetData();
   const [view, setView] = useState<View>("builder");
   const [quantities, setQuantities] = useState<Record<string, number>>({});
 
   /* Derived values */
-  const billEntries: BillEntry[] = allMenuItems
+  const billEntries: BillEntry[] = liveMenuItems
     .filter((item) => (quantities[item.id] ?? 0) > 0)
     .map((item) => ({
       id: item.id,
@@ -61,11 +61,10 @@ export default function OwnerBillingPanel({
 
   const handleClose = () => {
     onClose();
-    // Reset after exit animation
     setTimeout(() => { setQuantities({}); setView("builder"); }, 350);
   };
 
-  const handleShare = async () => {
+  const handleShareLink = async () => {
     if (navigator.share) {
       try {
         await navigator.share({ title: "Pay Annachi Tiffin Centre", url: upiLink });
@@ -73,6 +72,10 @@ export default function OwnerBillingPanel({
     } else {
       window.open(upiLink, "_blank", "noopener");
     }
+  };
+
+  const handleOpenUpi = () => {
+    window.open(upiLink, "_blank", "noopener");
   };
 
   return (
@@ -121,25 +124,16 @@ export default function OwnerBillingPanel({
               {view === "builder" && (
                 <BuilderView
                   key="builder"
-                  allMenuItems={allMenuItems}
+                  liveMenuItems={liveMenuItems}
                   quantities={quantities}
                   total={total}
                   hasBill={billEntries.length > 0}
                   setQty={setQty}
                   clearAll={clearAll}
                   onClose={handleClose}
-                  onProceed={() => setView("summary")}
-                />
-              )}
-              {view === "summary" && (
-                <SummaryView
-                  key="summary"
-                  entries={billEntries}
-                  total={total}
-                  onBack={() => setView("builder")}
-                  onClose={handleClose}
-                  onShare={handleShare}
                   onQR={() => setView("qr")}
+                  onShareLink={handleShareLink}
+                  onOpenUpi={handleOpenUpi}
                 />
               )}
               {view === "qr" && (
@@ -148,7 +142,7 @@ export default function OwnerBillingPanel({
                   entries={billEntries}
                   total={total}
                   upiLink={upiLink}
-                  onBack={() => setView("summary")}
+                  onBack={() => setView("builder")}
                   onClose={handleClose}
                   onNewBill={clearAll}
                 />
@@ -162,19 +156,21 @@ export default function OwnerBillingPanel({
 }
 
 /* ─────────────────────────────────────────────────────────────
-   VIEW 1 — BILL BUILDER
+   VIEW 1 — OWNER PANEL (BILL BUILDER)
 ───────────────────────────────────────────────────────────── */
 function BuilderView({
-  allMenuItems, quantities, total, hasBill, setQty, clearAll, onClose, onProceed,
+  liveMenuItems, quantities, total, hasBill, setQty, clearAll, onClose, onQR, onShareLink, onOpenUpi,
 }: {
-  allMenuItems: ReturnType<typeof useSheetData>["allMenuItems"];
+  liveMenuItems: ReturnType<typeof useSheetData>["liveMenuItems"];
   quantities: Record<string, number>;
   total: number;
   hasBill: boolean;
   setQty: (id: string, d: number) => void;
   clearAll: () => void;
   onClose: () => void;
-  onProceed: () => void;
+  onQR: () => void;
+  onShareLink: () => void;
+  onOpenUpi: () => void;
 }) {
   return (
     <motion.div
@@ -196,11 +192,11 @@ function BuilderView({
             fontFamily: "var(--font-inter)", fontSize: "10px",
             letterSpacing: "0.18em", textTransform: "uppercase",
             color: "rgba(165,214,167,0.50)", marginBottom: "2px",
-          }}>Owner Panel</p>
+          }}>Secret</p>
           <h2 style={{
             fontFamily: "var(--font-inter)", fontSize: "18px",
             fontWeight: 400, color: "#fff", letterSpacing: "-0.01em", margin: 0,
-          }}>Build Bill</h2>
+          }}>Owner Panel</h2>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
           {hasBill && (
@@ -216,7 +212,7 @@ function BuilderView({
 
       {/* Item List */}
       <div style={{ flex: 1, overflowY: "auto", padding: "12px 16px" }} className="scrollbar-hide">
-        {allMenuItems.map((item) => {
+        {liveMenuItems.map((item) => {
           const qty = quantities[item.id] ?? 0;
           const selected = qty > 0;
           return (
@@ -253,11 +249,7 @@ function BuilderView({
               <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
                 {qty > 0 && (
                   <>
-                    <button
-                      onClick={() => setQty(item.id, -1)}
-                      style={qtyBtn}
-                      aria-label="Decrease"
-                    >
+                    <button onClick={() => setQty(item.id, -1)} style={qtyBtn} aria-label="Decrease">
                       <Minus size={12} />
                     </button>
                     <span style={{
@@ -292,9 +284,10 @@ function BuilderView({
       }}>
         {hasBill ? (
           <>
+            {/* Total */}
             <div style={{
               display: "flex", justifyContent: "space-between",
-              alignItems: "baseline", marginBottom: "14px",
+              alignItems: "baseline", marginBottom: "16px",
             }}>
               <span style={{ fontFamily: "var(--font-inter)", fontSize: "13px", color: "rgba(255,255,255,0.50)" }}>
                 Total
@@ -306,14 +299,34 @@ function BuilderView({
                 Rs. {total}
               </span>
             </div>
-            <button
-              onClick={onProceed}
-              style={primaryBtn}
-              onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.88")}
-              onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
-            >
-              View Bill <ArrowRight size={15} />
-            </button>
+
+            {/* Action Buttons */}
+            <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+              <button
+                onClick={onQR}
+                style={primaryBtn}
+                onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.88")}
+                onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
+              >
+                <QrCode size={16} /> Generate QR Code
+              </button>
+              <button
+                onClick={onShareLink}
+                style={secondaryBtn}
+                onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(165,214,167,0.10)")}
+                onMouseLeave={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.05)")}
+              >
+                <Share2 size={16} /> Share Link
+              </button>
+              <button
+                onClick={onOpenUpi}
+                style={secondaryBtn}
+                onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(165,214,167,0.10)")}
+                onMouseLeave={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.05)")}
+              >
+                <Link size={16} /> Share UPI Link
+              </button>
+            </div>
           </>
         ) : (
           <p style={{
@@ -329,123 +342,7 @@ function BuilderView({
 }
 
 /* ─────────────────────────────────────────────────────────────
-   VIEW 2 — BILL SUMMARY
-───────────────────────────────────────────────────────────── */
-function SummaryView({
-  entries, total, onBack, onClose, onShare, onQR,
-}: {
-  entries: BillEntry[];
-  total: number;
-  onBack: () => void;
-  onClose: () => void;
-  onShare: () => void;
-  onQR: () => void;
-}) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, x: 30 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: -30 }}
-      transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-      style={{ display: "flex", flexDirection: "column", height: "100%" }}
-    >
-      {/* Header */}
-      <div style={{
-        padding: "20px 20px 16px",
-        borderBottom: "1px solid rgba(165,214,167,0.10)",
-        display: "flex", alignItems: "center", justifyContent: "space-between",
-        flexShrink: 0,
-      }}>
-        <button onClick={onBack} style={backBtn}>
-          <ChevronLeft size={16} /> Back
-        </button>
-        <button onClick={onClose} style={closeBtn}><X size={16} /></button>
-      </div>
-
-      {/* Bill Receipt */}
-      <div style={{ flex: 1, overflowY: "auto", padding: "24px 20px" }} className="scrollbar-hide">
-        <p style={{
-          fontFamily: "var(--font-inter)", fontSize: "10px",
-          letterSpacing: "0.18em", textTransform: "uppercase",
-          color: "rgba(165,214,167,0.50)", marginBottom: "6px",
-        }}>Bill Summary</p>
-        <h2 style={{
-          fontFamily: "var(--font-inter)", fontSize: "18px",
-          fontWeight: 400, color: "#fff", letterSpacing: "-0.01em",
-          margin: "0 0 24px",
-        }}>Annachi Tiffin Centre</h2>
-
-        {/* Divider */}
-        <div style={{ height: "1px", background: "rgba(165,214,167,0.12)", marginBottom: "16px" }} />
-
-        {/* Items */}
-        {entries.map((e) => (
-          <div key={e.id} style={{
-            display: "flex", justifyContent: "space-between",
-            alignItems: "baseline", marginBottom: "12px",
-          }}>
-            <div>
-              <span style={{
-                fontFamily: "var(--font-inter)", fontSize: "14px",
-                color: "#fff", fontWeight: 400,
-              }}>{e.name}</span>
-              <span style={{
-                fontFamily: "var(--font-inter)", fontSize: "12px",
-                color: "rgba(255,255,255,0.40)", marginLeft: "8px",
-              }}>× {e.qty}</span>
-            </div>
-            <span style={{
-              fontFamily: "var(--font-inter)", fontSize: "14px",
-              color: "#A5D6A7", fontWeight: 400,
-            }}>Rs. {e.price * e.qty}</span>
-          </div>
-        ))}
-
-        {/* Divider */}
-        <div style={{ height: "1px", background: "rgba(165,214,167,0.12)", margin: "16px 0" }} />
-
-        {/* Total */}
-        <div style={{
-          display: "flex", justifyContent: "space-between",
-          alignItems: "baseline",
-        }}>
-          <span style={{ fontFamily: "var(--font-inter)", fontSize: "13px", color: "rgba(255,255,255,0.50)" }}>
-            Grand Total
-          </span>
-          <span style={{
-            fontFamily: "var(--font-inter)", fontSize: "32px",
-            fontWeight: 400, color: "#fff", letterSpacing: "-0.03em",
-          }}>
-            Rs. {total}
-          </span>
-        </div>
-      </div>
-
-      {/* Action buttons */}
-      <div style={{ padding: "16px 20px 28px", flexShrink: 0, display: "flex", flexDirection: "column", gap: "10px" }}>
-        <button
-          onClick={onQR}
-          style={primaryBtn}
-          onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.88")}
-          onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
-        >
-          <QrCode size={16} /> Generate QR Code
-        </button>
-        <button
-          onClick={onShare}
-          style={secondaryBtn}
-          onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(165,214,167,0.10)")}
-          onMouseLeave={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.05)")}
-        >
-          <Share2 size={16} /> Share UPI Link
-        </button>
-      </div>
-    </motion.div>
-  );
-}
-
-/* ─────────────────────────────────────────────────────────────
-   VIEW 3 — QR CODE
+   VIEW 2 — AMOUNT TO COLLECT (QR CODE)
 ───────────────────────────────────────────────────────────── */
 function QRView({
   entries, total, upiLink, onBack, onClose, onNewBill,
@@ -473,44 +370,36 @@ function QRView({
         flexShrink: 0,
       }}>
         <button onClick={onBack} style={backBtn}>
-          <ChevronLeft size={16} /> Back
+          <ArrowLeft size={16} /> Back
         </button>
         <button onClick={onClose} style={closeBtn}><X size={16} /></button>
       </div>
 
-      {/* QR + Bill Side-by-side or stacked */}
+      {/* QR + Breakdown */}
       <div style={{ flex: 1, overflowY: "auto", padding: "24px 20px" }} className="scrollbar-hide">
+        {/* Section Label */}
+        <p style={{
+          fontFamily: "var(--font-inter)", fontSize: "10px",
+          letterSpacing: "0.18em", textTransform: "uppercase",
+          color: "rgba(165,214,167,0.50)", marginBottom: "6px", textAlign: "center",
+        }}>Amount to Collect</p>
+
         {/* Amount */}
-        <div style={{ textAlign: "center", marginBottom: "24px" }}>
-          <p style={{
-            fontFamily: "var(--font-inter)", fontSize: "11px",
-            letterSpacing: "0.16em", textTransform: "uppercase",
-            color: "rgba(165,214,167,0.55)", marginBottom: "6px",
-          }}>Amount to Collect</p>
-          <p style={{
-            fontFamily: "var(--font-inter)", fontSize: "40px",
-            fontWeight: 400, color: "#fff", letterSpacing: "-0.03em",
-            lineHeight: 1,
-          }}>Rs. {total}</p>
-        </div>
+        <p style={{
+          fontFamily: "var(--font-inter)", fontSize: "40px",
+          fontWeight: 400, color: "#fff", letterSpacing: "-0.03em",
+          lineHeight: 1, textAlign: "center", marginBottom: "24px",
+        }}>Rs. {total}</p>
 
         {/* QR Code */}
-        <div style={{
-          display: "flex", justifyContent: "center",
-          marginBottom: "24px",
-        }}>
+        <div style={{ display: "flex", justifyContent: "center", marginBottom: "24px" }}>
           <div style={{
             background: "#fff",
             borderRadius: "20px",
             padding: "18px",
             boxShadow: "0 8px 40px rgba(0,0,0,0.50)",
           }}>
-            <QRCodeSVG
-              value={upiLink}
-              size={200}
-              level="M"
-              includeMargin={false}
-            />
+            <QRCodeSVG value={upiLink} size={200} level="M" includeMargin={false} />
           </div>
         </div>
 
@@ -522,7 +411,7 @@ function QRView({
           Scan with any UPI app to pay
         </p>
 
-        {/* Bill breakdown */}
+        {/* Order Breakdown */}
         <div style={{
           background: "rgba(255,255,255,0.04)",
           border: "1px solid rgba(165,214,167,0.10)",
@@ -549,7 +438,7 @@ function QRView({
               }}>Rs. {e.price * e.qty}</span>
             </div>
           ))}
-          <div style={{ height: "1px", background: "rgba(165,214,167,0.12)", margin: "10px 0 10px" }} />
+          <div style={{ height: "1px", background: "rgba(165,214,167,0.12)", margin: "10px 0" }} />
           <div style={{ display: "flex", justifyContent: "space-between" }}>
             <span style={{ fontFamily: "var(--font-inter)", fontSize: "13px", color: "rgba(255,255,255,0.50)" }}>Total</span>
             <span style={{ fontFamily: "var(--font-inter)", fontSize: "14px", fontWeight: 400, color: "#fff" }}>
