@@ -67,7 +67,9 @@ export default function CategoriesGrid() {
           {[
             { id: "all", name: "All Items", image: "/product-images/dosa.webp", count: 7 },
             { id: "breakfast", name: "Breakfast", image: "/product-images/idli.webp", count: 5 },
-            { id: "drinks", name: "Drinks", image: "/product-images/chai.webp", count: 2 },
+            { id: "drinks", name: (
+              <>Drinks &<br />Refreshments</>
+            ), image: "/product-images/chai.webp", count: 2 },
           ].map((cat, i) => (
             <motion.button
               key={cat.id}
@@ -92,7 +94,7 @@ export default function CategoriesGrid() {
               <div style={{ width: "80px", height: "80px", position: "relative" }}>
                 <Image
                   src={cat.image}
-                  alt={cat.name}
+                  alt={typeof cat.name === "string" ? cat.name : "Drinks & Refreshments"}
                   fill
                   style={{ objectFit: "contain", filter: "drop-shadow(0 8px 16px rgba(0,0,0,0.25))" }}
                 />
@@ -102,6 +104,8 @@ export default function CategoriesGrid() {
                 fontSize: "13px",
                 fontWeight: 400,
                 color: "hsl(var(--foreground)/0.9)",
+                textAlign: "center",
+                lineHeight: 1.2,
               }}>{cat.name}</span>
               <span style={{
                 fontFamily: "var(--font-inter)",

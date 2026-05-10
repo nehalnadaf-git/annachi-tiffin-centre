@@ -150,7 +150,9 @@ export default function MenuSection() {
         {/* Render by Category */}
         {["breakfast", "drinks"].map((catId) => {
           const catItems = displayItems.filter((item) => item.categoryId === catId);
-          const catName = catId === "breakfast" ? "Breakfast" : "Drinks & Refreshments";
+          const catName = catId === "breakfast" ? "Breakfast" : (
+            <>Drinks &<br />Refreshments</>
+          );
           if (catItems.length === 0) return null;
 
           return (
@@ -170,28 +172,26 @@ export default function MenuSection() {
                     fontWeight: 400,
                     fontSize: "clamp(24px, 3.5vw, 36px)",
                     color: "#fff",
-                    whiteSpace: "nowrap",
                     letterSpacing: "-0.02em",
+                    lineHeight: 1.1,
                   }}>
                     {catName}
                   </h3>
                   <div style={{ flex: 1, height: "1px", background: "rgba(255,255,255,0.15)" }} />
-                  <span style={{
-                    fontFamily: "var(--font-inter)",
-                    fontSize: "11px",
-                    fontWeight: 400,
-                    color: "rgba(255,255,255,0.50)",
-                    background: "rgba(255,255,255,0.08)",
-                    borderRadius: "9999px",
-                    padding: "4px 14px",
-                    whiteSpace: "nowrap",
-                    letterSpacing: "0.06em",
-                  }}>
-                    {catItems.filter((i) => !i.unavailable).length} available
-                    {viewMode === "full" && catItems.some((i) => i.unavailable) &&
-                      ` · ${catItems.filter((i) => i.unavailable).length} unavailable`
-                    }
-                  </span>
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px", flexShrink: 0 }}>
+                    {/* Available count + green dot */}
+                    <span style={{ display: "flex", alignItems: "center", gap: "4px", fontFamily: "var(--font-inter)", fontSize: "13px", fontWeight: 400, color: "rgba(255,255,255,0.75)" }}>
+                      {catItems.filter((i) => !i.unavailable).length}
+                      <span style={{ width: "9px", height: "9px", borderRadius: "50%", background: "#4CAF50", boxShadow: "0 0 6px rgba(76,175,80,0.80)", display: "inline-block" }} />
+                    </span>
+                    {/* Unavailable count + red dot (full menu mode only) */}
+                    {viewMode === "full" && catItems.some((i) => i.unavailable) && (
+                      <span style={{ display: "flex", alignItems: "center", gap: "4px", fontFamily: "var(--font-inter)", fontSize: "13px", fontWeight: 400, color: "rgba(255,255,255,0.75)" }}>
+                        {catItems.filter((i) => i.unavailable).length}
+                        <span style={{ width: "9px", height: "9px", borderRadius: "50%", background: "#EF5350", boxShadow: "0 0 6px rgba(239,83,80,0.75)", display: "inline-block" }} />
+                      </span>
+                    )}
+                  </div>
                 </div>
               </motion.div>
 

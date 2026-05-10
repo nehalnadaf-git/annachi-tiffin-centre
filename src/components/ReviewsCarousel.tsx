@@ -1,347 +1,209 @@
 "use client";
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Star, ChevronLeft, ChevronRight } from "lucide-react";
-import { REVIEWS } from "@/lib/data";
-import { BRAND } from "@/lib/data";
+import { REVIEWS, BRAND } from "@/lib/data";
 
-/* ──────────────────────────────────────────────────────────
-   Helpers
-────────────────────────────────────────────────────────── */
-function getVisibleCount(width: number): number {
-  if (width >= 1024) return 3;
-  if (width >= 640) return 2;
-  return 1;
+const AVATAR_COLORS = ["#2E7D32", "#1565C0", "#6A1B9A", "#C62828", "#E65100", "#00695C"];
+
+function getInitials(name: string) {
+  return name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase();
 }
 
-const GAP = 20; // px between cards
-
-/* ──────────────────────────────────────────────────────────
-   Main component
-────────────────────────────────────────────────────────── */
 export default function ReviewsCarousel() {
   const [current, setCurrent] = useState(0);
-  const [visibleCount, setVisibleCount] = useState(1);
-  const [translateX, setTranslateX] = useState(0);
-  const containerRef = useRef<HTMLDivElement>(null);
+  const [direction, setDirection] = useState(1);
+  const touchStartX = useRef(0);
 
-  // Keep visibleCount in sync with window width
-  const syncVisible = useCallback(() => {
-    const v = getVisibleCount(window.innerWidth);
-    setVisibleCount(v);
-  }, []);
+  const prev = () => { setDirection(-1); setCurrent((c) => (c - 1 + REVIEWS.length) % REVIEWS.length); };
+  const next = () => { setDirection(1);  setCurrent((c) => (c + 1) % REVIEWS.length); };
+  const goTo = (i: number) => { setDirection(i > current ? 1 : -1); setCurrent(i); };
 
-  useEffect(() => {
-    syncVisible();
-    window.addEventListener("resize", syncVisible);
-    return () => window.removeEventListener("resize", syncVisible);
-  }, [syncVisible]);
+  const handleTouchStart = (e: React.TouchEvent) => { touchStartX.current = e.touches[0].clientX; };
+  const handleTouchEnd   = (e: React.TouchEvent) => {
+    const dx = e.changedTouches[0].clientX - touchStartX.current;
+    if (Math.abs(dx) > 48) dx < 0 ? next() : prev();
+  };
 
-  const max = Math.max(0, REVIEWS.length - visibleCount);
-
-  // Clamp current when visibleCount changes (e.g. resize)
-  useEffect(() => {
-    setCurrent((c) => Math.min(c, max));
-  }, [max]);
-
-  // Recompute pixel translation whenever current or visibleCount changes
-  useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
-    const cardWidth = (container.offsetWidth - (visibleCount - 1) * GAP) / visibleCount;
-    setTranslateX(-current * (cardWidth + GAP));
-  }, [current, visibleCount]);
-
-  const prev = () => setCurrent((c) => Math.max(0, c - 1));
-  const next = () => setCurrent((c) => Math.min(max, c + 1));
-
-  const handleReviewClick = () => {
-    // Send to Google Maps review or WhatsApp (fallback to WhatsApp)
-    const msg = encodeURIComponent(
-      `Hi! I'd like to leave a review for Annachi Tiffin Centre 🌟`
-    );
+  const handleWriteReview = () => {
+    const msg = encodeURIComponent("Hi! I'd like to leave a review for Annachi Tiffin Centre 🌟");
     window.open(`https://wa.me/${BRAND.whatsapp}?text=${msg}`, "_blank", "noopener");
   };
 
   return (
     <section
       id="reviews"
-      style={{
-        padding: "clamp(64px, 8vw, 96px) 0",
-        overflow: "hidden",
-        position: "relative",
-        background: "hsl(var(--background))",
-      }}
+      style={{ padding: "clamp(64px, 8vw, 96px) 0", overflow: "hidden", position: "relative", background: "hsl(var(--background))" }}
     >
-      {/* Decorative blobs */}
-      <div aria-hidden style={{
-        position: "absolute", top: "-20%", left: "-10%",
-        width: "40%", height: "60%",
-        background: "hsl(var(--primary)/0.06)",
-        filter: "blur(120px)", pointerEvents: "none",
-      }} />
-      <div aria-hidden style={{
-        position: "absolute", bottom: "-20%", right: "-10%",
-        width: "40%", height: "60%",
-        background: "hsl(var(--secondary)/0.04)",
-        filter: "blur(120px)", pointerEvents: "none",
-      }} />
+      {/* Ambient blobs */}
+      <div aria-hidden style={{ position: "absolute", top: "-20%", left: "-10%", width: "40%", height: "60%", background: "hsl(var(--primary)/0.06)", filter: "blur(120px)", pointerEvents: "none" }} />
+      <div aria-hidden style={{ position: "absolute", bottom: "-20%", right: "-10%", width: "40%", height: "60%", background: "hsl(var(--secondary)/0.04)", filter: "blur(120px)", pointerEvents: "none" }} />
 
-      <div className="container" style={{ maxWidth: "1200px" }}>
-        {/* Header row */}
-        <div style={{
-          display: "flex", flexWrap: "wrap",
-          alignItems: "flex-end", justifyContent: "space-between",
-          gap: "16px", marginBottom: "40px",
-        }}>
-          <div>
-            <div className="section-label" style={{ marginBottom: "16px" }}>
-              <span style={{
-                width: "6px", height: "6px", borderRadius: "50%",
-                background: "hsl(var(--primary-light))",
-                animation: "pulse-dot 2s infinite",
-              }} />
-              Guest Reviews
-            </div>
-            <h2 className="font-display" style={{
-              fontWeight: 400,
-              fontSize: "clamp(28px, 4vw, 40px)",
-              background: "linear-gradient(to right, #A5D6A7, #2E7D32)",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-              backgroundClip: "text",
-              marginTop: "8px",
-            }}>
-              What Hubli Is Saying
-            </h2>
+      <div className="container" style={{ maxWidth: "660px" }}>
+        {/* Header */}
+        <div style={{ textAlign: "center", marginBottom: "36px" }}>
+          <div className="section-label" style={{ marginBottom: "14px", justifyContent: "center" }}>
+            <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "hsl(var(--primary-light))", animation: "pulse-dot 2s infinite" }} />
+            Guest Reviews
           </div>
-
-          <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
-            {/* Prev */}
-            <NavButton
-              id="rev-prev"
-              onClick={prev}
-              disabled={current === 0}
-              icon={<ChevronLeft size={18} />}
-            />
-            {/* Next */}
-            <NavButton
-              id="rev-next"
-              onClick={next}
-              disabled={current >= max}
-              icon={<ChevronRight size={18} />}
-            />
-
-            <button
-              id="write-review-btn"
-              onClick={handleReviewClick}
-              style={{
-                padding: "10px 20px", borderRadius: "9999px",
-                border: "1px solid hsl(var(--primary)/0.3)",
-                background: "hsl(var(--primary)/0.06)",
-                color: "hsl(var(--primary-light))",
-                fontFamily: "var(--font-inter)",
-                fontSize: "13px", fontWeight: 500, cursor: "pointer",
-                transition: "background 200ms",
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.background = "hsl(var(--primary)/0.12)")}
-              onMouseLeave={(e) => (e.currentTarget.style.background = "hsl(var(--primary)/0.06)")}
-            >
-              Write a Review
-            </button>
-          </div>
-        </div>
-
-        {/* Carousel viewport */}
-        <div
-          style={{
-            overflow: "hidden",
-            maskImage: "linear-gradient(to right, transparent, black 4%, black 96%, transparent)",
-            WebkitMaskImage: "linear-gradient(to right, transparent, black 4%, black 96%, transparent)",
-          }}
-        >
-          {/* Measure container */}
-          <div ref={containerRef} style={{ width: "100%" }}>
-            <motion.div
-              animate={{ x: translateX }}
-              transition={{ type: "spring", damping: 32, stiffness: 300 }}
-              style={{
-                display: "flex",
-                gap: `${GAP}px`,
-                paddingBottom: "8px",
-                willChange: "transform",
-              }}
-            >
-              {REVIEWS.map((review, i) => (
-                <ReviewCard
-                  key={i}
-                  review={review}
-                  visibleCount={visibleCount}
-                />
-              ))}
-            </motion.div>
-          </div>
-        </div>
-
-        {/* Dot indicators */}
-        {max > 0 && (
-          <div style={{
-            display: "flex",
-            justifyContent: "center",
-            gap: "8px",
-            marginTop: "28px",
+          <h2 className="font-display" style={{
+            fontWeight: 400, fontSize: "clamp(26px, 4vw, 38px)",
+            background: "linear-gradient(to right, #A5D6A7, #2E7D32)",
+            WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text",
+            paddingBottom: "0.15em",
+            marginBottom: "-0.15em",
           }}>
-            {Array.from({ length: max + 1 }).map((_, i) => (
+            What Hubli Is Saying
+          </h2>
+        </div>
+
+        {/* Swipe area */}
+        <div
+          style={{ position: "relative", userSelect: "none" }}
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+        >
+          <AnimatePresence mode="wait" custom={direction}>
+            <motion.div
+              key={current}
+              custom={direction}
+              initial={{ opacity: 0, x: direction * 56 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: direction * -56 }}
+              transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
+            >
+              <ReviewCard
+                review={REVIEWS[current]}
+                avatarColor={AVATAR_COLORS[current % AVATAR_COLORS.length]}
+              />
+            </motion.div>
+          </AnimatePresence>
+        </div>
+
+        {/* Controls row */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "14px", marginTop: "24px" }}>
+          <NavBtn id="rev-prev" onClick={prev}><ChevronLeft size={16} /></NavBtn>
+
+          <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
+            {REVIEWS.map((_, i) => (
               <button
                 key={i}
-                onClick={() => setCurrent(i)}
-                aria-label={`Go to slide ${i + 1}`}
+                onClick={() => goTo(i)}
+                aria-label={`Slide ${i + 1}`}
                 style={{
-                  width: i === current ? "22px" : "8px",
-                  height: "8px",
-                  borderRadius: "9999px",
-                  border: "none",
-                  background: i === current
-                    ? "hsl(var(--primary))"
-                    : "hsl(var(--foreground)/0.15)",
+                  width: i === current ? "20px" : "6px",
+                  height: "6px", borderRadius: "9999px", border: "none", padding: 0,
+                  background: i === current ? "hsl(var(--primary))" : "hsl(var(--foreground)/0.15)",
                   cursor: "pointer",
-                  padding: 0,
                   transition: "width 280ms ease, background 220ms ease",
                 }}
               />
             ))}
           </div>
-        )}
+
+          <NavBtn id="rev-next" onClick={next}><ChevronRight size={16} /></NavBtn>
+        </div>
+
+        {/* Write review */}
+        <div style={{ textAlign: "center", marginTop: "20px" }}>
+          <button
+            id="write-review-btn"
+            onClick={handleWriteReview}
+            style={{
+              padding: "9px 22px", borderRadius: "9999px",
+              border: "1px solid hsl(var(--primary)/0.30)",
+              background: "hsl(var(--primary)/0.06)",
+              color: "hsl(var(--primary-light))",
+              fontFamily: "var(--font-inter)", fontSize: "13px", fontWeight: 500,
+              cursor: "pointer", transition: "background 200ms",
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.background = "hsl(var(--primary)/0.14)")}
+            onMouseLeave={(e) => (e.currentTarget.style.background = "hsl(var(--primary)/0.06)")}
+          >
+            Write a Review
+          </button>
+        </div>
       </div>
     </section>
   );
 }
 
-/* ──────────────────────────────────────────────────────────
-   Nav button
-────────────────────────────────────────────────────────── */
-function NavButton({
-  id, onClick, disabled, icon,
-}: {
-  id: string;
-  onClick: () => void;
-  disabled: boolean;
-  icon: React.ReactNode;
-}) {
+/* ── Nav button ── */
+function NavBtn({ id, onClick, children }: { id: string; onClick: () => void; children: React.ReactNode }) {
   return (
     <button
       id={id}
       onClick={onClick}
-      disabled={disabled}
       style={{
-        width: "40px", height: "40px", borderRadius: "50%",
+        width: "36px", height: "36px", borderRadius: "50%",
         border: "1px solid hsl(var(--border))",
         background: "hsl(var(--foreground)/0.04)",
-        color: disabled ? "hsl(var(--foreground)/0.20)" : "hsl(var(--foreground)/0.7)",
+        color: "hsl(var(--foreground)/0.65)",
         display: "flex", alignItems: "center", justifyContent: "center",
-        cursor: disabled ? "default" : "pointer",
-        transition: "all 200ms",
-        opacity: disabled ? 0.4 : 1,
+        cursor: "pointer", flexShrink: 0, transition: "all 200ms",
       }}
       onMouseEnter={(e) => {
-        if (disabled) return;
-        const el = e.currentTarget as HTMLElement;
-        el.style.background = "hsl(var(--primary)/0.12)";
-        el.style.borderColor = "hsl(var(--primary)/0.35)";
-        el.style.color = "hsl(var(--primary-light))";
+        e.currentTarget.style.background = "hsl(var(--primary)/0.10)";
+        e.currentTarget.style.borderColor = "hsl(var(--primary)/0.35)";
+        e.currentTarget.style.color = "hsl(var(--primary-light))";
       }}
       onMouseLeave={(e) => {
-        const el = e.currentTarget as HTMLElement;
-        el.style.background = "hsl(var(--foreground)/0.04)";
-        el.style.borderColor = "hsl(var(--border))";
-        el.style.color = "hsl(var(--foreground)/0.7)";
+        e.currentTarget.style.background = "hsl(var(--foreground)/0.04)";
+        e.currentTarget.style.borderColor = "hsl(var(--border))";
+        e.currentTarget.style.color = "hsl(var(--foreground)/0.65)";
       }}
     >
-      {icon}
+      {children}
     </button>
   );
 }
 
-/* ──────────────────────────────────────────────────────────
-   Review card
-────────────────────────────────────────────────────────── */
-function ReviewCard({
-  review,
-  visibleCount,
-}: {
-  review: typeof REVIEWS[0];
-  visibleCount: number;
-}) {
+/* ── Review card ── */
+function ReviewCard({ review, avatarColor }: { review: typeof REVIEWS[0]; avatarColor: string }) {
+  const initials = getInitials(review.name);
   return (
-    <div
-      style={{
-        // Each card takes exactly 1/visibleCount of the container, minus proportional gaps
-        flex: `0 0 calc((100% - ${(visibleCount - 1) * GAP}px) / ${visibleCount})`,
-        minHeight: "240px",
-        borderRadius: "16px",
-        border: "1px solid hsl(var(--border))",
-        background: "hsl(var(--card))",
-        backdropFilter: "blur(16px)",
-        WebkitBackdropFilter: "blur(16px)",
-        padding: "24px",
-        display: "flex",
-        flexDirection: "column",
-        gap: "12px",
-        boxSizing: "border-box",
-      }}
-    >
-      {/* Stars */}
-      <div style={{ display: "flex", gap: "3px" }}>
-        {[1, 2, 3, 4, 5].map((s) => (
-          <Star
-            key={s}
-            size={14}
-            style={{
-              color: s <= review.rating ? "#F9A825" : "hsl(var(--muted-foreground))",
-              fill: s <= review.rating ? "#F9A825" : "none",
-            }}
-          />
-        ))}
+    <div style={{
+      borderRadius: "20px",
+      border: "1px solid hsl(var(--border))",
+      background: "hsl(var(--card))",
+      backdropFilter: "blur(16px)",
+      WebkitBackdropFilter: "blur(16px)",
+      padding: "clamp(16px, 4vw, 26px)",
+      boxShadow: "0 6px 32px rgba(0,0,0,0.07)",
+    }}>
+      {/* Top row: avatar + name + stars + date */}
+      <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "14px" }}>
+        <div style={{
+          width: "42px", height: "42px", borderRadius: "50%",
+          background: avatarColor, flexShrink: 0,
+          display: "flex", alignItems: "center", justifyContent: "center",
+          fontFamily: "var(--font-inter)", fontWeight: 600, fontSize: "14px", color: "#fff",
+        }}>
+          {initials}
+        </div>
+        <div style={{ flex: 1 }}>
+          <p style={{ fontFamily: "var(--font-inter)", fontSize: "14px", fontWeight: 500, color: "hsl(var(--foreground))", marginBottom: "3px" }}>
+            {review.name}
+          </p>
+          <div style={{ display: "flex", gap: "2px" }}>
+            {[1, 2, 3, 4, 5].map((s) => (
+              <Star key={s} size={11} style={{ color: s <= review.rating ? "#F9A825" : "hsl(var(--muted-foreground))", fill: s <= review.rating ? "#F9A825" : "none" }} />
+            ))}
+          </div>
+        </div>
+        <span style={{ fontFamily: "var(--font-inter)", fontSize: "11px", color: "hsl(var(--muted-foreground)/0.55)", letterSpacing: "0.04em", flexShrink: 0 }}>
+          {review.date}
+        </span>
       </div>
 
       {/* Review text */}
       <p style={{
-        fontFamily: "var(--font-inter)",
-        fontSize: "14px",
-        color: "hsl(var(--muted-foreground))",
-        lineHeight: 1.75,
-        fontStyle: "italic",
-        flex: 1,
-        fontWeight: 400,
+        fontFamily: "var(--font-inter)", fontSize: "clamp(13px, 1.4vw, 15px)",
+        color: "hsl(var(--muted-foreground))", lineHeight: 1.75,
+        fontStyle: "italic", fontWeight: 400,
       }}>
         &ldquo;{review.text}&rdquo;
       </p>
-
-      {/* Footer: name + date */}
-      <div style={{
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        paddingTop: "8px",
-        borderTop: "1px solid hsl(var(--border))",
-      }}>
-        <span style={{
-          fontFamily: "var(--font-inter)",
-          fontWeight: 500,
-          color: "hsl(var(--foreground))",
-          fontSize: "14px",
-        }}>
-          {review.name}
-        </span>
-        <span style={{
-          fontFamily: "var(--font-inter)",
-          fontSize: "11px",
-          color: "hsl(var(--muted-foreground)/0.60)",
-          letterSpacing: "0.04em",
-        }}>
-          {review.date}
-        </span>
-      </div>
     </div>
   );
 }
