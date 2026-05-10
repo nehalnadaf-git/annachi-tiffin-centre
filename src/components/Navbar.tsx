@@ -556,31 +556,19 @@ function CartButton({ totalItems, onClick }: { totalItems: number; onClick: () =
 /* ─── Secret Annachi Long-Press Trigger ─── */
 function AnnachiSecretTrigger() {
   const [pressing, setPressing] = useState(false);
-  const [progress, setProgress] = useState(0);
   const pressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const progressInterval = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const startPress = () => {
     setPressing(true);
-    setProgress(0);
-    const startTime = Date.now();
-    progressInterval.current = setInterval(() => {
-      const elapsed = Date.now() - startTime;
-      setProgress(Math.min((elapsed / 3000) * 100, 100));
-    }, 16);
     pressTimer.current = setTimeout(() => {
-      if (progressInterval.current) clearInterval(progressInterval.current);
       setPressing(false);
-      setProgress(0);
       dispatchOwnerBilling();
     }, 3000);
   };
 
   const cancelPress = () => {
     if (pressTimer.current) clearTimeout(pressTimer.current);
-    if (progressInterval.current) clearInterval(progressInterval.current);
     setPressing(false);
-    setProgress(0);
   };
 
   return (
