@@ -1,0 +1,366 @@
+/* Fonts are loaded via <link> in layout.tsx for optimal performance */
+
+/* =========================================
+   ANNACHI TIFFIN CENTRE — DESIGN SYSTEM
+   Aesthetic: Editorial South Indian
+   Tone: Minimal, warm, premium, intentional
+   ========================================= */
+
+:root {
+  /* ---- Fonts ---- */
+  --font-inter:   'Inter', system-ui, sans-serif;     /* Main UI & Headings */
+  --font-display: 'Inter', system-ui, sans-serif;     /* Now using Inter Regular */
+  --font-accent:  'Cormorant Garamond', Georgia, serif;  /* Premium luxury serif accent */
+
+  /* ---- Light theme permanent (Cream White) ---- */
+  --background: 55 100% 97%;        /* Cream White #FFFDE7 */
+  --foreground: 0 0% 13%;           /* Charcoal #212121 */
+  --card: 50 50% 99%;               /* Warm White #FFFFFF */
+  --card-foreground: 0 0% 13%;
+  --popover: 55 100% 97%;
+
+  /* Primary: Forest Green */
+  --primary-h: 123;
+  --primary-s: 45%;
+  --primary-l: 33%;
+  --primary: 123 45% 33%;            /* #2E7D32 */
+  --primary-foreground: 60 20% 97%;
+
+  /* Primary Light: Soft Mint */
+  --primary-light: 120 47% 75%;     /* #A5D6A7 */
+
+  /* Primary Dark: Deep Green */
+  --primary-dark: 123 55% 23%;      /* #1B5E20 */
+
+  /* Secondary: Warm Turmeric Yellow */
+  --secondary: 41 95% 56%;          /* #F9A825 */
+  --secondary-foreground: 60 20% 5%;
+
+  --muted: 50 30% 93%;
+  --muted-foreground: 0 0% 46%;     /* Warm Grey #757575 */
+
+  --accent: 41 95% 56%;             /* Turmeric Yellow */
+  --accent-foreground: 60 20% 5%;
+
+  /* Highlight / CTA: Spice Orange */
+  --cta: 22 100% 45%;               /* #E65100 */
+
+  --border: 50 15% 87%;
+  --input: 50 15% 87%;
+  --ring: 123 45% 33%;
+  --radius: 1rem;
+
+  /* Background: Cream White in light */
+  --bg-cream: #FFFDE7;
+  --surface-warm: #FFFFFF;
+  --text-charcoal: #212121;
+  --text-warm-grey: #757575;
+}
+
+
+/* =========================================
+   RESET & BASE
+   ========================================= */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html {
+  scroll-behavior: smooth;
+  overflow-x: hidden;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  font-family: var(--font-inter);
+  background: hsl(var(--background));
+  color: #111;
+  letter-spacing: -0.01em;
+  line-height: 1.6;
+  overflow-x: hidden;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button, a { touch-action: manipulation; }
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-inter);
+  font-weight: 400;
+  letter-spacing: -0.02em;
+}
+
+h1 { line-height: 1.0; }
+h2 { line-height: 1.05; }
+h3 { line-height: 1.15; }
+h4 { line-height: 1.2; }
+
+/* =========================================
+   UTILITY CLASSES
+   ========================================= */
+
+.text-gradient {
+  font-family: var(--font-inter);
+  font-weight: 500;
+  background: linear-gradient(135deg, #F9A825 0%, #2E7D32 60%, #1B5E20 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.text-gradient-gold {
+  font-family: var(--font-inter);
+  font-weight: 500;
+  background: linear-gradient(135deg, #F9A825 0%, #E65100 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* =========================================
+   TYPOGRAPHY UTILITY CLASSES
+   ========================================= */
+
+/* Inter — Regular headings */
+.font-display {
+  font-family: var(--font-display);
+  font-weight: 400;
+  letter-spacing: -0.02em;
+}
+
+/* Premium Accent — Modern Inter overlays */
+.font-tempting {
+  font-family: var(--font-inter);
+  font-weight: 500;
+  letter-spacing: -0.04em;
+  line-height: 1.1;
+}
+
+/* Numerical data — tighter tracking for figures */
+.number-display {
+  font-family: var(--font-inter);
+  font-weight: 400;
+  letter-spacing: -0.04em;
+  font-variant-numeric: tabular-nums;
+}
+
+.section-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 16px;
+  border-radius: 9999px;
+  background: linear-gradient(135deg, rgba(46,125,50,0.75), rgba(27,94,32,0.85));
+  border: 1px solid rgba(165,214,167,0.45);
+  color: #A5D6A7;
+  font-size: 11px;
+  font-family: var(--font-inter);
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  box-shadow: 0 2px 16px rgba(46,125,50,0.30), inset 0 1px 0 rgba(165,214,167,0.15);
+}
+
+
+
+.glass {
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+
+
+.glass-card {
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 1rem;
+}
+
+.glass-strong {
+  backdrop-filter: blur(24px);
+  background: rgba(0, 0, 0, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.13);
+}
+
+.card-hover { transition: all 300ms ease-out; }
+.card-hover:hover {
+  border-color: hsl(var(--primary) / 0.35);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2), 0 0 0 1px hsl(var(--primary) / 0.08);
+  transform: translateY(-4px);
+}
+
+.shimmer { position: relative; overflow: hidden; }
+.shimmer::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.25), transparent);
+  transform: skewX(-20deg);
+  transition: all 0.7s ease;
+}
+.shimmer:hover::before { left: 150%; }
+
+.grain {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.025;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+}
+
+.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+
+.section-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, hsl(var(--primary) / 0.3), transparent);
+  width: 100%;
+}
+
+/* =========================================
+   KEYFRAME ANIMATIONS
+   ========================================= */
+
+@keyframes glide {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-16px); }
+}
+
+@keyframes glide-slow {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(16px); }
+}
+
+@keyframes pulse-soft {
+  0%, 100% { opacity: 0.4; transform: scale(1); }
+  50% { opacity: 0.8; transform: scale(1.05); }
+}
+
+@keyframes pulse-ring {
+  0%, 100% { opacity: 0.15; transform: scale(1.05); }
+  50% { opacity: 0.45; transform: scale(1.25); }
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); box-shadow: 0 0 0 0 rgba(46, 125, 50, 0.6); }
+  50% { opacity: 0.8; transform: scale(1.2); box-shadow: 0 0 12px 4px rgba(46, 125, 50, 0.3); }
+}
+
+@keyframes hero-float {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-16px) rotate(2deg); }
+}
+
+@keyframes scroll-progress {
+  from { width: 0%; }
+  to { width: 100%; }
+}
+
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes scale-in {
+  from { transform: scale(0); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+@keyframes spin-leaf {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* =========================================
+   CONTAINERS & LAYOUT
+   ========================================= */
+
+.container {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+@media (min-width: 640px) { .container { padding: 0 2rem; } }
+@media (min-width: 1024px) { .container { padding: 0 2.5rem; } }
+
+/* =========================================
+   SCROLL PROGRESS BAR
+   ========================================= */
+.scroll-progress-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  background: linear-gradient(90deg, hsl(var(--primary)), hsl(var(--secondary)), #E65100);
+  z-index: 9998;
+  border-radius: 0 9999px 9999px 0;
+  transition: width 0.1s linear;
+}
+
+/* =========================================
+   MENU SECTION BACKGROUND
+   ========================================= */
+.menu-section-bg {
+  background:
+    radial-gradient(ellipse at 30% 40%, rgba(46, 125, 50, 0.75), transparent 55%),
+    radial-gradient(ellipse at 75% 65%, rgba(27, 94, 32, 0.60), transparent 50%),
+    radial-gradient(ellipse at 60% 20%, rgba(249, 168, 37, 0.35), transparent 45%),
+    #0a2e0b;
+}
+
+/* =========================================
+   PRODUCT CARD SPECIAL STYLES
+   ========================================= */
+.product-card-body {
+  background: rgba(255, 255, 255, 0.14);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 22px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.20);
+  overflow: visible;
+}
+
+/* =========================================
+   HERO SECTION
+   ========================================= */
+.hero-halo {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle, rgba(249, 168, 37, 0.10), transparent 70%);
+  background-size: 140% 140%;
+  background-position: center;
+  z-index: -1;
+}
+
+
+
+/* =========================================
+   FORM ELEMENTS
+   ========================================= */
+input, textarea {
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: 0.75rem;
+  padding: 0.75rem 1rem;
+  color: hsl(var(--foreground));
+  font-family: var(--font-inter);
+  font-size: 14px;
+  width: 100%;
+  outline: none;
+  transition: border-color 200ms;
+}
+input:focus, textarea:focus {
+  border-color: hsl(var(--primary) / 0.5);
+  box-shadow: 0 0 0 3px hsl(var(--primary) / 0.08);
+}
+input::placeholder, textarea::placeholder {
+  color: hsl(var(--muted-foreground));
+}
