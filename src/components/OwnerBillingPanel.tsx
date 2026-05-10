@@ -31,7 +31,7 @@ export default function OwnerBillingPanel({
   open: boolean;
   onClose: () => void;
 }) {
-  const { allMenuItems } = useSheetData();
+  const { liveMenuItems: allMenuItems } = useSheetData();
   const [view, setView] = useState<View>("builder");
   const [quantities, setQuantities] = useState<Record<string, number>>({});
 
