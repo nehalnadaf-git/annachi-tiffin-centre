@@ -19,12 +19,8 @@ function buildOrderMessage(
   total: number,
   upiLink: string
 ): string {
-  const date = new Date().toLocaleDateString("en-IN", {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
+  const now = new Date();
+  const date = `${now.getDate()}/${now.getMonth() + 1}/${now.getFullYear()}`;
   const time = new Date().toLocaleTimeString("en-IN", {
     hour: "2-digit",
     minute: "2-digit",
@@ -38,7 +34,8 @@ function buildOrderMessage(
     .join("\n");
 
   return (
-    `ORDER REQUEST — Annachi Tiffin Centre\n` +
+    `ORDER REQUEST —\n` +
+    `Annachi Tiffin Centre\n` +
     `--------------------------------------\n` +
     `Customer  : ${customerName}\n` +
     `Date      : ${date}\n` +
@@ -49,10 +46,7 @@ function buildOrderMessage(
     `--------------------------------------\n` +
     `TOTAL AMOUNT : Rs. ${total}\n` +
     `--------------------------------------\n` +
-    `PAYMENT\n` +
-    `Please pay via Paytm UPI using the link below.\n` +
-    `Tap the link to open Paytm and complete payment.\n\n` +
-    `${upiLink}\n` +
+    `Upi link: ${upiLink}\n` +
     `--------------------------------------\n` +
     `Kindly confirm this order once payment is done.\n` +
     `Thank you for ordering from Annachi Tiffin Centre.`
