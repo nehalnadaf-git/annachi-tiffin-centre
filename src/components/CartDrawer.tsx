@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { X, Minus, Plus, ShoppingBag, Trash2, ArrowRight, ChevronLeft, Clock, Moon } from "lucide-react";
@@ -114,6 +114,18 @@ export default function CartDrawer() {
     close();
   };
 
+  const handlePayDirect = () => {
+    const trimmed = customerName.trim();
+    if (!trimmed || trimmed.length < 2) {
+      setNameError("Please enter your name (at least 2 characters).");
+      return;
+    }
+    const upiLink = buildUpiLink(totalPrice, BRAND.paytmUpiId);
+    window.open(upiLink, "_blank", "noopener");
+    clearCart();
+    close();
+  };
+
   return (
     <AnimatePresence>
       {cartOpen && (
@@ -184,6 +196,7 @@ export default function CartDrawer() {
                   onBack={() => setStep("cart")}
                   onNext={handleNameSubmit}
                   onClose={close}
+                  onPayDirect={handlePayDirect}
                 />
               )}
             </AnimatePresence>
@@ -408,7 +421,7 @@ function CartStep({
 
 /* ─── STEP 2: Name entry ─── */
 function NameStep({
-  customerName, nameError, onChange, onBack, onNext, onClose,
+  customerName, nameError, onChange, onBack, onNext, onClose, onPayDirect,
 }: {
   customerName: string;
   nameError: string;
@@ -416,7 +429,53 @@ function NameStep({
   onBack: () => void;
   onNext: () => void;
   onClose: () => void;
+  onPayDirect: () => void;
 }) {
+  const [pressing, setPressing] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const pressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const progressInterval = useRef<ReturnType<typeof setInterval> | null>(null);
+  const longPressTriggered = useRef(false);
+
+  const startPress = () => {
+    const trimmed = customerName.trim();
+    if (!trimmed || trimmed.length < 2) return; // let onClick handle validation error
+    longPressTriggered.current = false;
+    setPressing(true);
+    setProgress(0);
+    const startTime = Date.now();
+    progressInterval.current = setInterval(() => {
+      const elapsed = Date.now() - startTime;
+      setProgress(Math.min((elapsed / 3000) * 100, 100));
+    }, 16);
+    pressTimer.current = setTimeout(() => {
+      if (progressInterval.current) clearInterval(progressInterval.current);
+      longPressTriggered.current = true;
+      setPressing(false);
+      setProgress(0);
+      onPayDirect();
+    }, 3000);
+  };
+
+  const cancelPress = () => {
+    if (pressTimer.current) clearTimeout(pressTimer.current);
+    if (progressInterval.current) clearInterval(progressInterval.current);
+    setPressing(false);
+    setProgress(0);
+  };
+
+  const handleClick = () => {
+    if (longPressTriggered.current) {
+      longPressTriggered.current = false;
+      return;
+    }
+    onNext();
+  };
+
+  /* cleanup on unmount */
+  const cancelPressRef = useRef(cancelPress);
+  cancelPressRef.current = cancelPress;
+
   return (
     <motion.div
       initial={{ opacity: 0, x: 40 }}
@@ -503,16 +562,57 @@ function NameStep({
         )}
       </div>
 
-      <button
-        id="name-next-btn"
-        onClick={onNext}
-        style={{ ...primaryBtn, marginTop: "24px" }}
-        onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.88")}
-        onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
-      >
-        Place Order via WhatsApp
-        <ArrowRight size={16} />
-      </button>
+      {/* Place Order button with long-press → Paytm UPI */}
+      <div style={{ marginTop: "24px" }}>
+        <button
+          id="name-next-btn"
+          onClick={handleClick}
+          onPointerDown={startPress}
+          onPointerUp={cancelPress}
+          onPointerLeave={cancelPress}
+          onPointerCancel={cancelPress}
+          style={{
+            ...primaryBtn,
+            position: "relative",
+            overflow: "hidden",
+            userSelect: "none",
+            WebkitUserSelect: "none",
+            touchAction: "none",
+          }}
+        >
+          {/* Long-press fill indicator */}
+          {pressing && (
+            <div
+              style={{
+                position: "absolute",
+                left: 0, top: 0, bottom: 0,
+                width: `${progress}%`,
+                background: "rgba(255,255,255,0.18)",
+                pointerEvents: "none",
+                transition: "width 16ms linear",
+              }}
+            />
+          )}
+          <span style={{ position: "relative", zIndex: 1, display: "flex", alignItems: "center", gap: "8px" }}>
+            {pressing
+              ? `Hold… ${Math.max(1, Math.ceil(3 - (progress / 100) * 3))}s`
+              : "Place Order"}
+            <ArrowRight size={16} />
+          </span>
+        </button>
+
+        {/* Hint */}
+        <p style={{
+          fontFamily: "var(--font-inter)",
+          fontSize: "11px",
+          color: "rgba(165,214,167,0.40)",
+          textAlign: "center",
+          marginTop: "10px",
+          letterSpacing: "0.02em",
+        }}>
+          Hold 3 sec to pay directly via Paytm
+        </p>
+      </div>
     </motion.div>
   );
 }

@@ -299,7 +299,7 @@ export default function HeroSection() {
         @media (max-width: 767px) {
           #home > div { flex-direction: column !important; padding-top: 100px !important; }
           #home > div > div:first-child { flex: none !important; max-width: 100% !important; }
-          #home > div > div:last-child { position: absolute !important; top: 150px !important; right: -8px !important; width: 248px !important; }
+          #home > div > div:last-child { position: absolute !important; top: 150px !important; right: -38px !important; width: 248px !important; }
           #home > div > div:last-child > div { max-width: 248px !important; }
           #home > div > div:last-child img { animation: none !important; }
           #home > div > div:first-child h1 { font-size: 40px !important; max-width: 55% !important; }
