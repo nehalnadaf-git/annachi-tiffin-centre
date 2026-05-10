@@ -583,11 +583,6 @@ function AnnachiSecretTrigger() {
     setProgress(0);
   };
 
-  /* SVG ring params */
-  const R = 28;
-  const circumference = 2 * Math.PI * R;
-  const dashOffset = circumference * (1 - progress / 100);
-
   return (
     <div
       style={{
@@ -609,41 +604,8 @@ function AnnachiSecretTrigger() {
       onPointerLeave={cancelPress}
       onPointerCancel={cancelPress}
     >
-      {/* Circular progress ring — only visible while pressing */}
-      {pressing && (
-        <svg
-          width={`${(R + 6) * 2}px`}
-          height={`${(R + 6) * 2}px`}
-          style={{
-            position: "absolute",
-            top: "24px",
-            left: "50%",
-            transform: "translateX(-50%) rotate(-90deg)",
-            pointerEvents: "none",
-          }}
-        >
-          <circle
-            cx={R + 6}
-            cy={R + 6}
-            r={R}
-            fill="none"
-            stroke="rgba(165,214,167,0.15)"
-            strokeWidth="2"
-          />
-          <circle
-            cx={R + 6}
-            cy={R + 6}
-            r={R}
-            fill="none"
-            stroke="rgba(165,214,167,0.70)"
-            strokeWidth="2"
-            strokeDasharray={circumference}
-            strokeDashoffset={dashOffset}
-            strokeLinecap="round"
-            style={{ transition: "stroke-dashoffset 16ms linear" }}
-          />
-        </svg>
-      )}
+      {/* Secret long-press trigger */}
+
 
       <h2
         className="font-display"
