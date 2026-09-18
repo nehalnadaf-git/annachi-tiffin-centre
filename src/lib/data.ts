@@ -14,7 +14,7 @@ export const BRAND = {
     label: "Mon – Sat: 8:00 AM – 9:00 PM · Sunday: Closed",
   },
   phone: "7204523312",
-  whatsapp: "917204523312",
+  whatsapp: "916363278962",
   paytmUpiId: "nehalnadaf@ptyes",
   maps: null,
   payment: ["UPI", "Cash"],
