@@ -580,7 +580,6 @@ function AnnachiSecretTrigger() {
         gap: "6px",
         userSelect: "none",
         WebkitUserSelect: "none",
-        // @ts-expect-error — non-standard but required for iOS Safari
         WebkitTouchCallout: "none",
         touchAction: "none",
         position: "relative",
@@ -606,7 +605,6 @@ function AnnachiSecretTrigger() {
           cursor: "default",
           userSelect: "none",
           WebkitUserSelect: "none",
-          // @ts-expect-error — non-standard but required for iOS Safari
           WebkitTouchCallout: "none",
           pointerEvents: "none",
         }}
@@ -624,7 +622,6 @@ function AnnachiSecretTrigger() {
           marginTop: "2px",
           userSelect: "none",
           WebkitUserSelect: "none",
-          // @ts-expect-error — non-standard but required for iOS Safari
           WebkitTouchCallout: "none",
           pointerEvents: "none",
         }}
