@@ -7,57 +7,7 @@ import { useCart } from "@/contexts/CartContext";
 import { useSheetData } from "@/contexts/SheetDataContext";
 import { computeStoreStatus } from "@/lib/sheet-types";
 import { BRAND } from "@/lib/data";
-
-
-/* ─────────────────────────────────────────────────────────────
-   ORDER MESSAGE BUILDER
-   Produces a clean, professional, no-emoji order summary.
-───────────────────────────────────────────────────────────── */
-function buildOrderMessage(
-  customerName: string,
-  items: { name: string; qty: number; price: number }[],
-  total: number,
-  upiLink: string
-): string {
-  const now = new Date();
-  const date = `${now.getDate()}/${now.getMonth() + 1}/${now.getFullYear()}`;
-  const time = new Date().toLocaleTimeString("en-IN", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-
-  const itemLines = items
-    .map(
-      (it) =>
-        `  - ${it.name.padEnd(20)} x${it.qty}  Rs. ${(it.qty * it.price).toFixed(0)}`
-    )
-    .join("\n");
-
-  return (
-    `ORDER REQUEST —\n` +
-    `Annachi Tiffin Centre\n` +
-    `--------------------------------------\n` +
-    `Customer  : ${customerName}\n` +
-    `Date      : ${date}\n` +
-    `Time      : ${time}\n` +
-    `--------------------------------------\n` +
-    `ITEMS ORDERED\n` +
-    `${itemLines}\n` +
-    `--------------------------------------\n` +
-    `TOTAL AMOUNT : Rs. ${total}\n` +
-    `--------------------------------------\n` +
-    `Upi link: ${upiLink}\n` +
-    `--------------------------------------\n` +
-    `Kindly confirm this order once payment is done.\n` +
-    `Thank you for ordering from Annachi Tiffin Centre.`
-  );
-}
-
-function buildUpiLink(amount: number, upiId: string): string {
-  const note = encodeURIComponent("Annachi Tiffin Centre Order");
-  const name = encodeURIComponent("Annachi Tiffin Centre");
-  return `upi://pay?pa=${upiId}&pn=${name}&am=${amount}&cu=INR&tn=${note}`;
-}
+import { buildCheckoutWhatsAppMessage, buildPayUrl, buildUpiLink } from "@/lib/pay";
 
 /* ─────────────────────────────────────────────────────────────
    STEP VIEWS
@@ -94,13 +44,14 @@ export default function CartDrawer() {
 
   const handleOrder = (name?: string) => {
     const resolvedName = name ?? customerName.trim();
-    const upiLink = buildUpiLink(totalPrice, BRAND.paytmUpiId);
-    const message = buildOrderMessage(
-      resolvedName,
-      items.map((ci) => ({ name: ci.item.name, qty: ci.quantity, price: ci.item.price })),
-      totalPrice,
-      upiLink
-    );
+    const order = {
+      customerName: resolvedName,
+      amount: totalPrice,
+      items: items.map((ci) => ({ name: ci.item.name, qty: ci.quantity, price: ci.item.price })),
+      createdAt: Date.now(),
+    };
+    const payUrl = buildPayUrl(window.location.origin, order);
+    const message = buildCheckoutWhatsAppMessage(order, payUrl);
     const waNumber = BRAND.whatsapp;
     const waUrl = `https://wa.me/${waNumber}?text=${encodeURIComponent(message)}`;
     window.open(waUrl, "_blank", "noopener");
@@ -114,7 +65,7 @@ export default function CartDrawer() {
       setNameError("Please enter your name (at least 2 characters).");
       return;
     }
-    const upiLink = buildUpiLink(totalPrice, BRAND.paytmUpiId);
+    const upiLink = buildUpiLink(totalPrice);
     window.open(upiLink, "_blank", "noopener");
     clearCart();
     close();

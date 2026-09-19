@@ -4,62 +4,13 @@ import { motion, AnimatePresence } from "framer-motion";
 import { QRCodeSVG } from "qrcode.react";
 import { X, Plus, Minus, ArrowLeft, Trash2, QrCode, RefreshCw, Link } from "lucide-react";
 import { useSheetData } from "@/contexts/SheetDataContext";
-import { BRAND } from "@/lib/data";
+import { buildCheckoutWhatsAppMessage, buildPayUrl, buildUpiLink } from "@/lib/pay";
 
 /* ─────────────────────────────────────────────────────────────
    TYPES
 ───────────────────────────────────────────────────────────── */
 type View = "builder" | "qr";
 interface BillEntry { id: string; name: string; price: number; qty: number; }
-
-/* ─────────────────────────────────────────────────────────────
-   UPI LINK BUILDER
-───────────────────────────────────────────────────────────── */
-function buildUpiLink(amount: number): string {
-  const note = encodeURIComponent("Annachi Tiffin Centre Bill");
-  const name = encodeURIComponent("Annachi Tiffin Centre");
-  return `upi://pay?pa=${BRAND.paytmUpiId}&pn=${name}&am=${amount}&cu=INR&tn=${note}`;
-}
-
-function buildOrderMessage(
-  customerName: string,
-  items: BillEntry[],
-  total: number,
-  upiLink: string
-): string {
-  const now = new Date();
-  const date = `${now.getDate()}/${now.getMonth() + 1}/${now.getFullYear()}`;
-  const time = new Date().toLocaleTimeString("en-IN", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-
-  const itemLines = items
-    .map(
-      (it) =>
-        `  - ${it.name.padEnd(20)} x${it.qty}  Rs. ${(it.qty * it.price).toFixed(0)}`
-    )
-    .join("\n");
-
-  return (
-    `ORDER REQUEST —\n` +
-    `Annachi Tiffin Centre\n` +
-    `--------------------------------------\n` +
-    `Customer  : ${customerName}\n` +
-    `Date      : ${date}\n` +
-    `Time      : ${time}\n` +
-    `--------------------------------------\n` +
-    `ITEMS ORDERED\n` +
-    `${itemLines}\n` +
-    `--------------------------------------\n` +
-    `TOTAL AMOUNT : Rs. ${total}\n` +
-    `--------------------------------------\n` +
-    `Upi link: ${upiLink}\n` +
-    `--------------------------------------\n` +
-    `Kindly confirm this order once payment is done.\n` +
-    `Thank you for ordering from Annachi Tiffin Centre.`
-  );
-}
 
 /* ─────────────────────────────────────────────────────────────
    MAIN COMPONENT
@@ -106,7 +57,14 @@ export default function OwnerBillingPanel({
 
 
   const handleOpenUpi = () => {
-    const message = buildOrderMessage("Walk-in Customer", billEntries, total, upiLink);
+    const order = {
+      customerName: "Walk-in Customer",
+      amount: total,
+      items: billEntries.map((e) => ({ name: e.name, qty: e.qty, price: e.price })),
+      createdAt: Date.now(),
+    };
+    const payUrl = buildPayUrl(window.location.origin, order);
+    const message = buildCheckoutWhatsAppMessage(order, payUrl);
     const waUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
     window.open(waUrl, "_blank", "noopener");
   };
